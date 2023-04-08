@@ -17,9 +17,9 @@ class LivrosController {
       .populate('autor', 'nome')
       .exec((err, livros) => {
         if (err) {
-          res
-            .status(400)
-            .send({ message: `${err.message} - Id do livro não localizado` });
+          res.status(400).send({ message: `${err.message} - Id inválida` });
+        } else if (livros == null) {
+          res.status(404).send({ message: `${id} - id do livro não localizado` });
         } else {
           res.status(200).send(livros);
         }
@@ -65,8 +65,10 @@ class LivrosController {
 
     livros.find({ editora: editora }, {}, (err, livros) => {
       if (err) {
-        res.status(500).send({ message: `${err.message} - editora do livro não localizado` });
-      }else {
+        res
+          .status(500)
+          .send({ message: `${err.message} - editora do livro não localizado` });
+      } else {
         res.status(200).send(livros);
       }
     });
