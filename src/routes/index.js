@@ -4,7 +4,7 @@ import autores from './autoresRoutes.js'
 
 const routes = (app) => {
   app.route('/').get((req, res) => {
-    res.status(200).send({ titulo: 'curso de node' });
+    res.status(200).send({ titulo: 'Biblioteca' });
   });
 
   app.use(
