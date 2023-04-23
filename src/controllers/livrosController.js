@@ -1,11 +1,27 @@
 import livros from '../models/Livro.js';
+import autores from '../models/Autor.js';
+import RequisicaoIncorreta from '../erros/RequisicaoIncorreta.js'
 
 class LivrosController {
   static listarLivros = async (req, res, next) => {
     try {
-      const livrosResultado = await livros.find().populate('autor').exec();
+      let { limite = 5, pagina = 1 } = req.query;
 
-      res.status(200).json(livrosResultado);
+      limite = parseInt(limite);
+      pagina = parseInt(pagina);
+
+      if (limite > 0 && pagina > 0) {
+        const livrosResultado = await livros.find()
+          .skip((pagina -1) * limite)
+          .limit(limite)
+          .populate('autor')
+          .exec();
+  
+        res.status(200).json(livrosResultado);
+      } else {
+        next(new RequisicaoIncorreta());
+      }
+
     } catch (erro) {
       next(erro);
     }
@@ -71,17 +87,52 @@ class LivrosController {
     }
   };
 
-  static listarLivroPorEditora = async (req, res, next) => {
+  static listarLivroPorFiltro = async (req, res, next) => {
     try {
-      const editora = req.query.editora;
+      const busca = await processaBusca(req.query);
 
-      const livrosResultado = await livros.find({ editora: editora });
-
-      res.status(200).send(livrosResultado);
+      if (busca !== null) {
+        const livrosResultado = await livros.find(busca).populate('autor');
+        res.status(200).send(livrosResultado);
+      } else {
+        res.status(200).send([]);
+      }
     } catch (erro) {
       next(erro);
     }
   };
+}
+
+async function processaBusca(parametros) {
+  const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = parametros;
+
+  const regexTitulo = new RegExp(titulo, 'i'); // parametro 'i' desconsidera o case sensitive
+  const regexEditora = new RegExp(editora, 'i'); // parametro 'i' desconsidera o case sensitive
+  const regexAutor = new RegExp(nomeAutor, 'i'); // parametro 'i' desconsidera o case sensitive
+
+  const busca = {};
+
+  if (editora) busca.editora = regexEditora;
+  if (titulo) busca.titulo = regexTitulo;
+
+  if (minPaginas || maxPaginas) busca.numeroPaginas = {};
+
+  //$gte é um operador do mongo que significa Maior ou Igual que
+  if (minPaginas) busca.numeroPaginas.$gte = minPaginas;
+  //$lte é um operador do mongo que significa Menor ou Igual que
+  if (maxPaginas) busca.numeroPaginas.$lte = maxPaginas;
+
+  if (nomeAutor) {
+    const autor = await autores.findOne({ nome: regexAutor });
+
+    if (autor !== null) {
+      busca.autor = autor._id;
+    } else {
+      busca.autor = null;
+    }
+  }
+
+  return busca;
 }
 
 export default LivrosController;

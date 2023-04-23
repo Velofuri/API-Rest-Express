@@ -8,6 +8,7 @@ Substitua process.env.MONGODB_URI pela string de conexão
 
 const mongoDbUri = process.env.MONGODB_URI;
 
+mongoose.set('strictQuery', false);
 mongoose.connect(mongoDbUri);
 
 let db = mongoose.connection;

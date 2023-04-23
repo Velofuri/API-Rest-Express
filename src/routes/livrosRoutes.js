@@ -5,10 +5,10 @@ const router = express.Router();
 
 router
   .get('/livros', LivrosController.listarLivros)
-  .get('/livros/busca', LivrosController.listarLivroPorEditora)
+  .get('/livros/busca', LivrosController.listarLivroPorFiltro)
   .get('/livros/:id', LivrosController.listarLivroPorId)
   .post('/livros', LivrosController.cadastrarLivros)
   .put('/livros/:id', LivrosController.atualizarLivro)
-  .delete('/livros/:id', LivrosController.excluirLivro)
+  .delete('/livros/:id', LivrosController.excluirLivro);
 
 export default router;
